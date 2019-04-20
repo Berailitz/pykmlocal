@@ -4,7 +4,7 @@ from Cython.Distutils import build_ext
 import numpy
 
 setup(name='pykmlocal',
-      version='1.7.2',
+      version='1.7.3',
       install_requires=[
           'Cython'
       ],
