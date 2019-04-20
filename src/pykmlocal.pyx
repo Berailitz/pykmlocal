@@ -20,6 +20,21 @@ cdef extern from "KMlocal.h":
         KMfilterCenters execute()
         KMfilterCenters* execute_to_new()
 
+    cdef cppclass KMlocalSwap:
+        KMlocalSwap(KMfilterCenters, KMterm)
+        KMfilterCenters execute()
+        KMfilterCenters* execute_to_new()
+
+    cdef cppclass KMlocalHybrid:
+        KMlocalHybrid(KMfilterCenters, KMterm)
+        KMfilterCenters execute()
+        KMfilterCenters* execute_to_new()
+
+    cdef cppclass KMlocalEZ_Hybrid:
+        KMlocalEZ_Hybrid(KMfilterCenters, KMterm)
+        KMfilterCenters execute()
+        KMfilterCenters* execute_to_new()
+
 cdef extern from "KMdata.h":
     cdef cppclass KMdata:
         KMdata( int dim, int maxPts )
@@ -84,14 +99,26 @@ cdef class KMLocal:
                                   10,			#  temp. run length
                                   0.95)			#  temp. reduction factor
         cdef KMlocalLloyds* kmLloyds
+        cdef KMlocalSwap* kmSwap
+        cdef KMlocalHybrid* kmHybrid
+        cdef KMlocalEZ_Hybrid* kmEZ_Hybrid
         cdef int i
         cdef int j
         cdef KMcenter c
         cdef np.ndarray[np.float_t, ndim=2] codebook
 
-        if algorithm=='lloyds':
-             kmLloyds = new KMlocalLloyds(deref(ctrs), deref(term)) # repeated Lloyd's
-             ctrs = kmLloyds.execute_to_new()
+        if algorithm == 'lloyds':
+            kmLloyds = new KMlocalLloyds(deref(ctrs), deref(term)) # repeated Lloyd's
+            ctrs = kmLloyds.execute_to_new()
+        elif algorithm == 'swap':
+            kmSwap = new KMlocalSwap(deref(ctrs), deref(term))
+            ctrs = kmSwap.execute_to_new()
+        elif algorithm == 'hybrid':
+            kmHybrid = new KMlocalHybrid(deref(ctrs), deref(term))
+            ctrs = kmHybrid.execute_to_new()
+        elif algorithm == 'ez_hybrid':
+            kmEZ_Hybrid = new KMlocalEZ_Hybrid(deref(ctrs), deref(term))
+            ctrs = kmEZ_Hybrid.execute_to_new()
         else:
             raise ValueError('unknown algorithm "%s"'%algorithm)
 
@@ -105,7 +132,7 @@ cdef class KMLocal:
 
         return codebook
 
-def kmeans( data, k):
-    kml = KMLocal( data, k )
-    codebook = kml.run()
-    return codebook
+def kmeans(data, k, algorithm='lloyds'):
+    kml = KMLocal(data, k)
+    centers = kml.run(algorithm=algorithm)
+    return centers
