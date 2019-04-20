@@ -5,6 +5,9 @@ import numpy
 
 setup(name='pykmlocal',
       version='1.7.2',
+      install_requires=[
+          'Cython'
+      ],
       cmdclass={'build_ext': build_ext},
       ext_modules=[Extension(name="pykmlocal",
                              sources=['src/pykmlocal.pyx',
